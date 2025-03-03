@@ -9,6 +9,7 @@
 //Hit run until you see "Enter a message:" is displayed
 //type in a string
 //hit run until you see your string displayed in the terminal
+//if you continue to hit run, you will get an error message.
 
 .text
 
