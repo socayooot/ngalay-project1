@@ -1,0 +1,52 @@
+.globl main
+.equ STDOUT, 1
+.equ STDIN, 0
+.equ __NR_READ, 63
+.equ __NR_WRITE, 64
+.equ __NR_EXIT, 93
+
+.text
+
+main:
+    //main() prolog
+    addi sp, sp, -4
+    sw ra, 0(sp)
+
+    call getchar  //Call getchar to read a character
+
+    //Print the character read
+    mv t0, a0
+    mv a0, t0
+    call putchar
+
+exit_program:
+    //main() epilog
+    li a7, __NR_EXIT
+    li a0, 0
+    ecall
+
+//getchar function
+getchar:
+    addi sp, sp, -4
+    mv a1, sp
+    li a7, __NR_READ
+    li a0, STDIN
+    li a2, 1
+    ecall
+    lb a0, 0(sp)
+    addi sp, sp, 4
+    ret
+
+//putchar function
+putchar:
+    addi sp, sp, -4
+    sb a0, 0(sp)
+    li a7, __NR_WRITE
+    li a0, STDOUT
+    mv a1, sp
+    li a2, 1
+    ecall
+    addi sp, sp, 4
+    ret
+
+.data
