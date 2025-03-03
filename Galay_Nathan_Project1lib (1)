@@ -28,7 +28,7 @@ main:
 
     //main() epilog
     lw ra, 100(sp)        //restore the return address
-    addi sp,sp 104        //fix the stack
+    addi sp, sp, 104        //fix the stack
     li a7, __NR_EXIT        //loads a7 with the EXIT function
     li a0, 0                      //sets a0 to 0 (success)
     ecall                         //end the program
@@ -41,8 +41,8 @@ main:
 //###################################################
 
 getchar:
-   addi sp, sp, -16       //allocate 16 bytes of memory on the stack (ensures that if a larger string than expected is inputted, it can handle it)
-   sw ra, 12(sp)          //store the ra on the offset of 12 (lets you keep the address of the function you're in)
+   addi sp, sp, -8       //allocate 16 bytes of memory on the stack (ensures that if a larger string than expected is inputted, it can handle it)
+   sw ra, 4(sp)          //store the ra on the offset of 12 (lets you keep the address of the function you're in)
    li a7, __NR_READ   //a7 now holds 63 or tells the computer to make a read system call
    li a0, STDIN           //tells the system to read from stdin (keyboard)
    mv a1, sp              //directly copy sp into a1
@@ -51,14 +51,14 @@ getchar:
    ecall                      //tell the system to do the instructions
    blt a0, x0, eof       //branch to eof if a0 is less than 0
    lbu a0, 0(a1)        //loads byte from buffer into a0
-   lw ra, 12(sp)        //restore ra
-   addi sp, sp, 16    //free the stack
+   lw ra, 4(sp)        //restore ra
+   addi sp, sp, 8    //free the stack
    ret
 
    eof:  
    li a0, -1               //set a0 to -1
    lw ra, 12(sp)       //restore the ra I saved above
-   addi sp, sp, 16    //adjust the stack
+   addi sp, sp, 8    //adjust the stack
    ret
 
 //#######################################
