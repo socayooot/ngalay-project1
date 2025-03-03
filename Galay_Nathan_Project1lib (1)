@@ -1,119 +1,145 @@
-.globl main 
+.globl main
 .equ STDOUT, 1
 .equ STDIN, 0
 .equ __NR_READ, 63
 .equ __NR_WRITE, 64
 .equ __NR_EXIT, 93
 
+//To run the code, compile it first
+//Hit run until you see "Enter a message:" is displayed
+//type in a string
+//hit run until you see your string displayed in the terminal
+
 .text
 
 main:
 //main() prolog
-	addi sp, sp, -104
-	sw ra, 100(sp)
-  //main() prolog
-    addi sp, sp, -104
-    sw ra, 100(sp)
+   addi sp, sp, -104       //allocate space for local var and saved registers
+   sw ra, 100(sp)          //save the retrun address at 100 offset to return to after function call
 
-    la a0, prompt //Load the address of the prompt string
-    call puts
+    la a0, prompt            //Load the address of the prompt string
+    call puts                   //tells puts to print the prompt
 
-    la a0, buffer //Load the address of the buffer
-    call gets
+    la a0, buffer            //Load the address of the buffer
+    call gets                 //calls gets to read a line from input into the buffer
 
-    la a0, buffer //Load the address of the buffer to be printed
-    call puts
+    la a0, buffer           //Load the address of the buffer to be printed (stored with the input)
+    call puts                //tells puts to print the input from the user
 
     //main() epilog
-    li a7, __NR_EXIT
-    li a0, 0
-    ecall
-
-	//main() body
-	
-	
+    li a7, __NR_EXIT        //loads a7 with the EXIT function
+    li a0, 0                      //sets a0 to 0 (success)
+    ecall                         //end the program
+      
 //methods
 
+//###################################################
 // reads the next character from stdin and returns it as an unsigned char cast to
-// an int , or -1 on end of file or error 
-getchar:
-   li a7, __NR_READ //a7 now holds 63 or tells the computer to make a read system call
-   li a0, STDIN //tells the system to read from stdin (keyboard) 
-   la a1, buffer //the one character you want is stored in the buffer, so you pass the address of that one character to a1 so that string is read contiguously
-   li a2, 1 //specifies reading one byte
-   ecall //tell the system to do the instructions
-   lb a0, 0(a1) //get the character from the buffer in memory allowing it to be used 
-   ret //return it for use
+// an int , or -1 on end of file or error
+//###################################################
 
+getchar:
+   addi sp, sp, -16       //allocate 16 bytes of memory on the stack (ensures that if a larger string than expected is inputted, it can handle it)
+   sw ra, 12(sp)          //store the ra on the offset of 12 (lets you keep the address of the function you're in)
+   li a7, __NR_READ   //a7 now holds 63 or tells the computer to make a read system call
+   li a0, STDIN           //tells the system to read from stdin (keyboard)
+   mv a1, sp              //directly copy sp into a1
+   
+   li a2, 1                   //specifies reading one byte
+   ecall                      //tell the system to do the instructions
+   blt a0, x0, eof       //branch to eof if a0 is less than 0
+   lbu a0, 0(a1)        //loads byte from buffer into a0
+   lw ra, 12(sp)        //restore ra
+   addi sp, sp, 16    //free the stack
+   ret
+
+   eof:  
+   li a0, -1               //set a0 to -1
+   lw ra, 12(sp)       //restore the ra I saved above
+   addi sp, sp, 16    //adjust the stack
+   ret
+
+//#######################################
 // writes the character c , cast to an unsigned char , to stdout
 // returns the same input unsigned char
+//#######################################
+
 putchar:
-    addi sp, sp, -4         //Allocate space on the stack
-    sb a0, 0(sp)             //Store the character on the stack
-    li a7, __NR_WRITE        //a7 = system call number 64 for write
-    li a0, STDOUT            //a0 = file descriptor for stdout
-    mv a1, sp                //save the stack pointer to a1
-    li a2, 1           //a2 = length of the string (1 byte)
-    ecall                    //perform the system call
-    addi sp, sp, 4           //Deallocate stack space
+    addi sp, sp, -8                   //Allocate space on the stack
+    sw ra, 4(sp)                      //store the ra at the offset of 4  
+    sb a0, 0(sp)                     //Store the character on the stack
+    li a7, __NR_WRITE           //a7 = system call number 64 for write
+    li a0, STDOUT                 //a0 = file descriptor for stdout
+    mv a1, sp                       //move the stack pointer to a1
+    li a2, 1                            //a2 = length of the string (1 byte)
+    ecall                               //perform the system call by transferring control to kernal
+    addi sp, sp, 8                 //Deallocate stack space
     ret
 
-
+//#############################################################
 //gets is the function that reads from stdin
-
 // reads a line from stdin into the buffer pointed to by s until a terminating
 //newline .
 // Returns the number of bytes read into the buffer , or -1 on error or end - of - file
 //reached
 // before reading a newline
+//#############################################################
+
 gets:
-   mv t0, a0 //save the address of the buffer in t0 so we can go back to it
-   li t1, 0 //create a counter 
+   addi sp, sp, -16                  //allocate space for the stack
+   sw ra, 12(sp)                     //store the ra onto the offset of 12
+   addi a1, sp, 16                  //sets a1 to sp + 16. Sets up a1 to be starting address where characters will be placed as they are read in loop
+
+   mv t0, a0                          //saves the buffer address in t0
    
 get_char_loop:
-   call getchar //get a character from stdin
-   mv t2, a0 //save character into t2
-   blt t2, x0, gets_done //if -1 is found, branch to the end
-   sb t2, 0(t0) //store the character in t2 at address t0
-   addi t0, t0, 1 //incriment to the next character address
-   addi t1, t1, 1 //incriment the counter
-   
-   li t3, 10 //the new line ASCII character stored in t3
-   beq t2, t3, gets_done //if the character that is found is \n, branch to gets_done
-  
-   
-   j get_char_loop //else jump back to the top of the loop
+
+   jal ra, getchar                  //get a character from stdin
+   mv a2, a0                        //save character into a2
+   li t1, -1                            //set t1 to -1 for comparison (EOF)
+   beq a2, t1, gets_done     //if -1 is found, branch to the end
+   li t1, 10                           //the new line ASCII character stored in t3
+   beq a2, t1, gets_done    //Compare for new line
+   sb a2, 0(t0)                    //store the character in a2 at address t0
+   addi t0, t0, 1                  //incriment to the next character address
+ 
+   j get_char_loop              //jump back to the loop
    
 gets_done:
-   sb zero, 0(t0) //implement the null character at the end of the string
-   mv a0, t1 //return the number of characters read
-   ret
+    li a0, 0                          //set a0 to 0 (null character)        
+    sb a0, 0(t0)                  //store null char at end of string
+    lw ra, 12(sp)                //restore the ra
+    addi sp, sp, 16             //restore the stack
+    ret
 
+//###############################################
 //writes the string from the gets function recieved
-
 // writes the string s appended with a trailing newline to stdout .
 // Returns a nonnegative number on success , or -1 on error
-//puts function
-puts:
-    mv t0, a0 //Save the address of the string
-puts_loop:
-    lb a0, 0(t0) //Load a character
-    beqz a0, puts_newline //If null, go to newline
-    call putchar
-    blt a0, x0, puts_error //Check for putchar error
-    addi t0, t0, 1 //Increment pointer
-    j puts_loop
+//###############################################
 
-puts_newline:
-    li a0, 10 //Load newline character
-    call putchar
-    blt a0, x0, puts_error
-    li a0, 0
+puts:
+    addi sp, sp, -16                                //allocate space on stack
+    sw ra, 12(sp)                                   //store the ra at offset of 12
+    mv t1, a0                                        //Save the address of the string into t1
+
+puts_loop:
+    lbu a0, 0(t1)                                   //Load a character
+    beq a0, x0, exit_loop                     //If null exit the loop
+    jal ra, putchar                               //call putchar
+    addi t1, t1, 1                                //increment the address of the pointer
+   
+    j puts_loop                                   //loop until null character is found
+
+exit_loop:
+    lw ra, 12(sp)                               //restore the ra                            
+    addi sp, sp, 16                           //restore the stack
     ret
 
 puts_error:
-    li a0, -1
+    li a0, -1                                     //Return -1 on error
     ret
+
 .data
 prompt:   .ascii  "Enter a message: "
 prompt_end:
