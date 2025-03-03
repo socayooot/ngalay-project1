@@ -57,7 +57,7 @@ getchar:
    ret
 
    eof:  
-   li a0, -1               //set a0 to -1
+   li a0, -1               //set a0 to -1 to return an error
    lw ra, 12(sp)       //restore the ra I saved above
    addi sp, sp, 8    //adjust the stack
    ret
