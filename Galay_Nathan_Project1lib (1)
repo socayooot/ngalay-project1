@@ -1,0 +1,56 @@
+.globl main 
+.equ STDOUT, 1
+.equ STDIN, 0
+.equ __NR_READ, 63
+.equ __NR_WRITE, 64
+.equ __NR_EXIT, 93
+
+.text
+
+main:
+# main() prolog
+	addi sp, sp, -104
+	sw ra, 100(sp)
+
+	# main() body
+	
+	
+//methods
+
+// reads the next character from stdin and returns it as an unsigned char cast to
+// an int , or -1 on end of file or error 
+getchar:
+   li a7, __NR_READ //a7 now holds 63 or tells the computer to make a read system call
+   li a0, STDIN //tells the system to read from stdin (keyboard) 
+   la a1, buffer //the one character you want is stored in the buffer, so you pass the address of that one character to a1
+   li a2, 1 //specifies reading one byte
+   ecall //tell the system to do the instructions
+   lb a0, 0(a1) //get the character from the buffer in memory allowing it to be used 
+   ret //return it for use
+
+// writes the character c , cast to an unsigned char , to stdout
+// returns the same input unsigned char
+putchar:
+li a7, __NR_WRITE //a7 now holds 64 and tells the computer to make a write system call
+li a0, STDOUT //tells the system to out to STDOUT
+addi a1, ao, x0 //move the character to a1
+li a2, 1 //number of bytes to write 
+ecall //write the character
+ret //return the character
+
+// reads a line from stdin into the buffer pointed to by s until a terminating
+//newline .
+// Returns the number of bytes read into the buffer , or -1 on error or end - of - file
+//reached
+// before reading a newline
+//i believe that this is something that is supposed to be called again
+gets:
+
+// writes the string s appended with a trailing newline to stdout .
+// Returns a nonnegative number on success , or -1 on error
+puts:
+  
+.data
+prompt:   .ascii  "Enter a message: "
+prompt_end:
+buffer: .space 1 //allocate 1 byte of space for the buffer where a character will be stored
