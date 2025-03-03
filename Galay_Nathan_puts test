@@ -1,0 +1,62 @@
+.globl main 
+.equ STDOUT, 1
+.equ STDIN, 0
+.equ __NR_READ, 63
+.equ __NR_WRITE, 64
+.equ __NR_EXIT, 93
+
+.text
+
+main:
+//main() prolog
+	addi sp, sp, -104
+	sw ra, 100(sp)
+
+    la a0, prompt # Load the address of the prompt string
+    call puts
+    
+// writes the character c , cast to an unsigned char , to stdout
+// returns the same input unsigned char
+putchar:
+    addi sp, sp, -4         //Allocate space on the stack
+    sb a0, 0(sp)             //Store the character on the stack
+    li a7, __NR_WRITE        //a7 = system call number 64 for write
+    li a0, STDOUT            //a0 = file descriptor for stdout
+    mv a1, sp                //save the stack pointer to a1
+    li a2, 1           //a2 = length of the string (1 byte)
+    ecall                    //perform the system call
+    addi sp, sp, 4           //Deallocate stack space
+    ret
+
+//puts function
+puts:
+    mv t0, a0 //Save the address of the string
+puts_loop:
+    lb a0, 0(t0) //Load a character
+    beqz a0, puts_newline //If null, go to newline
+    call putchar
+    blt a0, x0, puts_error //Check for putchar error
+    addi t0, t0, 1 //Increment pointer
+    j puts_loop
+
+puts_newline:
+    li a0, 10 //Load newline character
+    call putchar
+    blt a0, x0, puts_error //Check for putchar error
+    li a0, 0 
+    ret
+
+puts_error:
+    li a0, -1 //Return -1 on error
+    ret
+
+.data
+prompt:   .ascii  "Enter a message: "
+prompt_end:
+buffer: .space 100 //allocate 1 byte of space for the buffer where a character will be stored
+
+//the buffer is useful here:
+//1: allows for the temporary storage of characters in contiguous memory
+//2: complete a string using the null terminator
+//3: treat inputs as a string
+//4: control input size
