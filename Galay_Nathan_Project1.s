@@ -14,6 +14,8 @@ main:
 	//main() body
 
 	//Write the prompt to the terminal (stdout)
+   la a1, prompt
+   addi  a2, zero, prompt_end - prompt 
    call write_string
 
 	//Read up to 100 characters from the terminal (stdin)
@@ -21,10 +23,7 @@ main:
 
 	//Write the just read characters to the terminal (stdout)
 	addi a2, a0, 0
-	li a7, __NR_WRITE
-	li a0, STDOUT
-	mv a1, sp
-	ecall
+	call write_string
 
 	//main() epilog
 	lw ra, 100(sp)
@@ -34,8 +33,6 @@ main:
 write_string:
    	li a7, __NR_WRITE
 	li a0, STDOUT
-	la a1, prompt
-	addi  a2, zero, prompt_end - prompt 
 	ecall   
 	ret
 	
@@ -51,3 +48,4 @@ read_string:
 .data
 prompt:   .ascii  "Enter a message: "
 prompt_end:
+
