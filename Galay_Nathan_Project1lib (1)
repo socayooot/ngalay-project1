@@ -27,6 +27,8 @@ main:
     call puts                //tells puts to print the input from the user
 
     //main() epilog
+    lw ra, 100(sp)        //restore the return address
+    addi sp,sp 104        //fix the stack
     li a7, __NR_EXIT        //loads a7 with the EXIT function
     li a0, 0                      //sets a0 to 0 (success)
     ecall                         //end the program
