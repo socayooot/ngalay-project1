@@ -7,8 +7,13 @@
 
 .text
 
+//to run this test, compile the code
+//run the code
+
+//output: should outout a capital A
+
 main:
-//main() prolog
+    //main() prolog
     addi sp, sp, -104
     sw ra, 100(sp)
 
@@ -18,19 +23,21 @@ main:
 
     //Exit
     li a7, __NR_EXIT   //syscall to exit the program
-    li a0, 0           //exit status 0
+    li a0, 0           
     ecall
 
 //methods
 
 //putchar function (same as you provided)
 putchar:
-    addi sp, sp, -4          //Allocate space on the stack
-    sb a0, 0(sp)            //Store the character on the stack
-    li a7, __NR_WRITE       //a7 = system call number 64 for write
-    li a0, STDOUT           //a0 = file descriptor for stdout
-    mv a1, sp               //Save the stack pointer to a1
-    li a2, 1                //a2 = length of the string (1 byte)
-    ecall                   //Perform the system call
-    addi sp, sp, 4       //Deallocate stack space
+    addi sp, sp, -8                   //Allocate space on the stack
+    sw ra, 4(sp)                      //store the ra at the offset of 4  
+    sb a0, 0(sp)                     //Store the character on the stack
+    li a7, __NR_WRITE           //a7 = system call number 64 for write
+    li a0, STDOUT                 //a0 = file descriptor for stdout
+    mv a1, sp                       //move the stack pointer to a1
+    li a2, 1                            //a2 = length of the string (1 byte)
+    ecall                               //perform the system call by transferring control to kernal
+    addi sp, sp, 8                 //Deallocate stack space
     ret
+
