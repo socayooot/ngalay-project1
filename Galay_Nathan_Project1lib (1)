@@ -11,6 +11,23 @@ main:
 //main() prolog
 	addi sp, sp, -104
 	sw ra, 100(sp)
+  //main() prolog
+    addi sp, sp, -104
+    sw ra, 100(sp)
+
+    la a0, prompt //Load the address of the prompt string
+    call puts
+
+    la a0, buffer //Load the address of the buffer
+    call gets
+
+    la a0, buffer //Load the address of the buffer to be printed
+    call puts
+
+    //main() epilog
+    li a7, __NR_EXIT
+    li a0, 0
+    ecall
 
 	//main() body
 	
@@ -31,12 +48,15 @@ getchar:
 // writes the character c , cast to an unsigned char , to stdout
 // returns the same input unsigned char
 putchar:
-li a7, __NR_WRITE //a7 now holds 64 and tells the computer to make a write system call
-li a0, STDOUT //tells the system to out to STDOUT
-mv a1, a0 //move the character from a0 into a1
-li a2, 1 //number of bytes to write 
-ecall //write the character
-ret //return the character
+    addi sp, sp, -4         //Allocate space on the stack
+    sb a0, 0(sp)             //Store the character on the stack
+    li a7, __NR_WRITE        //a7 = system call number 64 for write
+    li a0, STDOUT            //a0 = file descriptor for stdout
+    mv a1, sp                //save the stack pointer to a1
+    li a2, 1           //a2 = length of the string (1 byte)
+    ecall                    //perform the system call
+    addi sp, sp, 4           //Deallocate stack space
+    ret
 
 
 //gets is the function that reads from stdin
@@ -60,6 +80,7 @@ get_char_loop:
    
    li t3, 10 //the new line ASCII character stored in t3
    beq t2, t3, gets_done //if the character that is found is \n, branch to gets_done
+  
    
    j get_char_loop //else jump back to the top of the loop
    
@@ -72,8 +93,27 @@ gets_done:
 
 // writes the string s appended with a trailing newline to stdout .
 // Returns a nonnegative number on success , or -1 on error
+//puts function
 puts:
-  
+    mv t0, a0 //Save the address of the string
+puts_loop:
+    lb a0, 0(t0) //Load a character
+    beqz a0, puts_newline //If null, go to newline
+    call putchar
+    blt a0, x0, puts_error //Check for putchar error
+    addi t0, t0, 1 //Increment pointer
+    j puts_loop
+
+puts_newline:
+    li a0, 10 //Load newline character
+    call putchar
+    blt a0, x0, puts_error
+    li a0, 0
+    ret
+
+puts_error:
+    li a0, -1
+    ret
 .data
 prompt:   .ascii  "Enter a message: "
 prompt_end:
