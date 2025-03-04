@@ -42,15 +42,14 @@ main:
 //###################################################
 
 getchar:
-   addi sp, sp, -8       //allocate 16 bytes of memory on the stack (ensures that if a larger string than expected is inputted, it can handle it)
-   sw ra, 4(sp)          //store the ra on the offset of 12 (lets you keep the address of the function you're in)
+   addi sp, sp, -8       //allocate 8 bytes of memory on the stack (save ra and a char)
+   sw ra, 4(sp)          //store the ra on the offset of 4 (keep the address of getchar)
    li a7, __NR_READ   //a7 now holds 63 or tells the computer to make a read system call
    li a0, STDIN           //tells the system to read from stdin (keyboard)
-   mv a1, sp              //directly copy sp into a1
    
    li a2, 1                   //specifies reading one byte
    ecall                      //tell the system to do the instructions
-   blt a0, x0, eof       //branch to eof if a0 is less than 0
+   blt a0, x0, eof       //branch to eof if there are no characters left to read
    lbu a0, 0(a1)        //loads byte from buffer into a0
    lw ra, 4(sp)        //restore ra
    addi sp, sp, 8    //free the stack
@@ -90,7 +89,7 @@ putchar:
 
 gets:
    addi sp, sp, -8                  //allocate space for the stack
-   sw ra, 4(sp)                     //store the ra onto the offset of 12
+   sw ra, 4(sp)                     //store the ra onto the offset of 4
    mv t0, a0                          //saves the buffer address in t0
    
 get_char_loop:
@@ -98,7 +97,7 @@ get_char_loop:
    call getchar                  //get a character from stdin (stored in a0)
    li t1, -1                            //set t1 to -1 for comparison (EOF)
    beq a0, t1, gets_done     //if -1 is found, branch to the end
-   li t1, 10                           //the new line ASCII character stored in t3
+   li t1, 10                           //the new line ASCII character stored in t1
    beq a0, t1, gets_done    //Compare for new line
    sb a0, 0(t0)                    //store the character in a0 at address t0
    addi t0, t0, 1                  //incriment to the next character address
