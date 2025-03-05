@@ -46,19 +46,20 @@ getchar:
    sw ra, 4(sp)          //store the ra on the offset of 4 (keep the address of getchar)
    li a7, __NR_READ   //a7 now holds 63 or tells the computer to make a read system call
    li a0, STDIN           //tells the system to read from stdin (keyboard)
-   
    li a2, 1                   //specifies reading one byte
    ecall                      //tell the system to do the instructions
+                         
    blt a0, x0, eof       //branch to eof if there are no characters left to read
    lbu a0, 0(a1)        //loads byte from buffer into a0
-   lw ra, 4(sp)        //restore ra
-   addi sp, sp, 8    //free the stack
+   
+   lw ra, 4(sp)          //restore ra
+   addi sp, sp, 8       //free the stack
    ret
 
    eof:  
-   li a0, -1               //set a0 to -1 to return an error
+   li a0, -1                //set a0 to -1 to return an error
    lw ra, 12(sp)       //restore the ra I saved above
-   addi sp, sp, 8    //adjust the stack
+   addi sp, sp, 8     //adjust the stack
    ret
 
 //#######################################
@@ -94,7 +95,7 @@ gets:
    
 get_char_loop:
 
-   call getchar                  //get a character from stdin (stored in a0)
+   jal ra, getchar                  //get a character from stdin (stored in a0)
    li t1, -1                            //set t1 to -1 for comparison (EOF)
    beq a0, t1, gets_done     //if -1 is found, branch to the end
    li t1, 10                           //the new line ASCII character stored in t1
@@ -102,10 +103,10 @@ get_char_loop:
    sb a0, 0(t0)                    //store the character in a0 at address t0
    addi t0, t0, 1                  //incriment to the next character address
  
-   j get_char_loop              //jump back to the loop
+   beq x0, x0, get_char_loop              //jump back to the loop
    
 gets_done:
-    li a0, 0                         //set a0 to 0 (null character)        
+    li a0, 0                         //add the null character the buffer       
     sb a0, 0(t0)                 //store null char at end of string
     lw ra, 4(sp)                 //restore the ra
     addi sp, sp, 8             //restore the stack
@@ -118,8 +119,8 @@ gets_done:
 //###############################################
 
 puts:
-    addi sp, sp, -16                                //allocate space on stack
-    sw ra, 12(sp)                                   //store the ra at offset of 12
+    addi sp, sp, -8                                //allocate space on stack
+    sw ra, 4(sp)                                   //store the ra at offset of 4
     mv t1, a0                                        //Save the address of the string into t1
 
 puts_loop:
@@ -128,11 +129,11 @@ puts_loop:
     jal ra, putchar                               //call putchar
     addi t1, t1, 1                                //increment the address of the pointer
    
-    j puts_loop                                   //loop until null character is found
+    beq x0, x0, puts_loop                //loop until null character is found from gets function
 
 exit_loop:
-    lw ra, 12(sp)                               //restore the ra                            
-    addi sp, sp, 16                           //restore the stack
+    lw ra, 4(sp)                               //restore the ra                            
+    addi sp, sp, 8                           //restore the stack
     ret
 
 puts_error:
