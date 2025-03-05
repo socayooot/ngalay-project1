@@ -26,6 +26,9 @@ main:
 
     la a0, buffer           //Load the address of the buffer to be printed (stored with the input)
     call puts                //tells puts to print the input from the user
+    
+    li a0, 10                //load a0 with the newline character
+    call putchar          //print a new line after execution
 
     //main() epilog
     lw ra, 100(sp)        //restore the return address
@@ -132,6 +135,7 @@ puts_loop:
     beq x0, x0, puts_loop                //loop until null character is found from gets function
 
 exit_loop:
+
     lw ra, 4(sp)                               //restore the ra                            
     addi sp, sp, 8                           //restore the stack
     ret
