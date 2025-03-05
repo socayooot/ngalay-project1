@@ -33,7 +33,11 @@ I should note that if the initial code was not given in the beginning in part 2,
 
 In other words, the hardest part of the project was probably memory control, tracking where it goes, and interacting with strings Additionally, debugging in Assembly is probably one of the hardest things to do because of how long it takes and understanding what each instruction is doing.
 
-e) easily 25+ hours. To complete this project, I allegated 1.5 - 2 weeks to work on the project in small portions so I don't feel too stressed.
+I also spent some time researching but I had an issue with the directions call and jal. In the case of call, I learned that call will have a chance to sometimes mess with the address of something that you're trying to preserve/manipulate/etc. In the case of call v. jal, I learned that it is safer to use jal rather than call. With this idea in mind, I also changed my code to not have shortcut commands like call and j and rather changing them to jal and beq. Although, they are effectively the same thing, it is better to play it safe. The problem that I faced with this was when I used call v. jal in my puts function, the message prompt would get cut off and it would start to print empty characters rather than the actual characters whcih indicates that there is something going wrong with the memory.
+
+Talking with other students, there was an issue with knowing where to place functions in the code. Some people placed the functions at the top and some people placed it below main. I opted to place my functions below main and I could not figure out if there were errors associated with the position of the functions. There were times when I thought that the placement of the methods caused some issues with the code during compilation.
+
+e) easily 25+ hours. To complete this project, I allegated 1.5 - 2 weeks to work on the project in small portions so I don't feel too stressed. However, I spent a lot of time researching and learning and trying to understand how addresses and strings work together.
 
 f)
 
