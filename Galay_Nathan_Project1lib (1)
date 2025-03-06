@@ -60,7 +60,7 @@ getchar:
    ret
 
    eof:  
-   li a0, -1                //set a0 to -1 to return an error
+   li a0, -1                //set a0 to -1 to return an error if there is nothing there in the string
    lw ra, 12(sp)       //restore the ra I saved above
    addi sp, sp, 8     //adjust the stack
    ret
@@ -70,16 +70,13 @@ getchar:
 // returns the same input unsigned char
 //#######################################
 
-putchar:
-    addi sp, sp, -8                   //Allocate space on the stack
-    sw ra, 4(sp)                      //store the ra at the offset of 4  
+putchar:  
     sb a0, 0(sp)                     //Store the character on the stack
     li a7, __NR_WRITE           //a7 = system call number 64 for write
     li a0, STDOUT                 //a0 = file descriptor for stdout
     mv a1, sp                       //move the stack pointer to a1
     li a2, 1                            //a2 = length of the string (1 byte)
-    ecall                               //perform the system call by transferring control to kernal
-    addi sp, sp, 8                 //Deallocate stack space
+    ecall                               //perform the system call and write the character to STDOUT
     ret
 
 //#############################################################
