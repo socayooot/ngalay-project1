@@ -12,6 +12,13 @@
 
 //output: should outout a capital A
 
+//Realization:
+//Because you are realistically, only printing to STDOUT, there is no reason
+//to allocate space onto the stack to store more things
+//you can store the character (byte) onto the current stack and then push it out onto STDOUT
+//when this function is called into puts, one character is automatically pushed into this function ready for use again
+//The memory is not lost either since the stack is already a temporary space to hold data
+
 main:
     //main() prolog
     addi sp, sp, -104
@@ -30,14 +37,11 @@ main:
 
 //putchar function (same as you provided)
 putchar:
-    addi sp, sp, -8                   //Allocate space on the stack
-    sw ra, 4(sp)                      //store the ra at the offset of 4  
     sb a0, 0(sp)                     //Store the character on the stack
     li a7, __NR_WRITE           //a7 = system call number 64 for write
     li a0, STDOUT                 //a0 = file descriptor for stdout
     mv a1, sp                       //move the stack pointer to a1
     li a2, 1                            //a2 = length of the string (1 byte)
-    ecall                               //perform the system call by transferring control to kernal
-    addi sp, sp, 8                 //Deallocate stack space
+    ecall                               //perform the system call and write the character to STDOUT
     ret
 
