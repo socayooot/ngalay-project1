@@ -34,26 +34,26 @@ exit_program:
 
 //getchar function
 getchar:
-   addi sp, sp, -16       //allocate 16 bytes of memory on the stack (ensures that if a larger string than expected is inputted, it can handle it)
-   sw ra, 12(sp)          //store the ra on the offset of 12 (lets you keep the address of the function you're in)
-   li a7, __NR_READ   //a7 now holds 63 or tells the computer to make a read system call
-   li a0, STDIN           //tells the system to read from stdin (keyboard)
-   mv a1, sp              //directly copy sp into a1
+    addi sp, sp, -8            // Allocate space on the stack for the return address (ra)
+    sw ra, 4(sp)               // Store ra at offset 4 in the stack
+    li a7, __NR_READ           // Load system call number for read (63)
+    li a0, STDIN               // File descriptor for stdin (0)
+    li a2, 1                   // Read 1 byte
+    ecall                      // Make the system call (read)
+    
+    blt a0, x0, eof            // If result in a0 is negative, branch to eof (EOF or error)
+    lbu a0, 0(a1)              // Load byte from buffer (a1 points to the buffer)
+    
+    lw ra, 4(sp)               // Restore return address (ra)
+    addi sp, sp, 8             // Deallocate space from the stack
+    ret
+
+eof:
+    li a0, -1                  // Return -1 on EOF or error
+    lw ra, 4(sp)               // Restore return address (ra)
+    addi sp, sp, 8             // Deallocate space from the stack
+    ret
    
-   li a2, 1                   //specifies reading one byte
-   ecall                      //tell the system to do the instructions
-   blt a0, x0, eof       //branch to eof if a0 is less than 0
-   lbu a0, 0(a1)        //loads byte from buffer into a0
-   lw ra, 12(sp)        //restore ra
-   addi sp, sp, 16    //free the stack
-   ret
-
-   eof:  
-   li a0, -1               //set a0 to -1
-   lw ra, 12(sp)       //restore the ra I saved above
-   addi sp, sp, 16    //adjust the stack
-   ret
-
 //putchar function
 putchar:
     addi sp, sp, -4
